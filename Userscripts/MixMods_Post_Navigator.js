@@ -9,8 +9,8 @@
 // @icon            https://www.mixmods.com.br/favicon.ico
 // @grant           none
 // @run-at          document-idle
-// @downloadURL     https://github.com/ChaliceChore/JSScripts/Userscripts/MixMods_Post_Navigator.js
-// @updateURL       https://github.com/ChaliceChore/JSScripts/Userscripts/MixMods_Post_Navigator.js
+// @downloadURL     https://github.com/ChaliceChore/JSScripts/blob/main/Userscripts/MixMods_Post_Navigator.js
+// @updateURL       https://github.com/ChaliceChore/JSScripts/blob/main/Userscripts/MixMods_Post_Navigator.js
 // ==/UserScript==
 
 (() => {
