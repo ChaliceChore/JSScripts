@@ -3,7 +3,7 @@
 // @version         1.0.0
 // @author          ChaliceChore
 // @namespace       https://github.com/ChaliceChore/JSScripts/Userscripts
-// @description:en  Floating overlay buttons to jump between posts. Supports double-click pagination with auto-scroll, PT-BR/English labels (translation locked only when GTranslate is explicitly set to English), a collapsed FAB on mobile, long-press tooltips, styling that follows the site's own light/dark toggle, and confirm-state tooltips that stay in the visitor's chosen GTranslate language.
+// @description:en  Floating overlay buttons to jump between posts. Supports double-click pagination with auto-scroll, PT-BR/English labels (translation locked only when GTranslate is explicitly set to English), a collapsed FAB on mobile, long-press tooltips, styling that follows the site's own light/dark toggle, and confirm-state tooltips that stay in the visitor's chosen GTranslate language, and live post-list refresh for infinite-scroll userscripts like Pagetual.
 // @license         CC BY-NC-SA 4.0
 // @match           https://www.mixmods.com.br/*
 // @icon            https://www.mixmods.com.br/favicon.ico
@@ -16,17 +16,19 @@
 (() => {
     "use strict";
 
-    // Individual post pages use the date-based permalink /YYYY/MM/slug/ —
-    // everything else (homepage, category/tag listings, /page/N/, etc.)
+    // Ignore individual post pages use the date-based permalink /YYYY/MM/slug/.
+    // Everything else (homepage, category/tag listings, /page/N/, etc.) 
     // is a listing page and should get the nav overlay.
     const EXCLUDED_PATH = /^\/\d+\/\d+\/[^\/]+\/?$/;
     if (EXCLUDED_PATH.test(location.pathname))
         return;
 
+    const getScope = () => document.querySelector("#content") ||
+        document.querySelector("main") ||
+        document.body;
+
     const findPosts = () => {
-        const scope = document.querySelector("#content") ||
-            document.querySelector("main") ||
-            document.body;
+        const scope = getScope();
         const selectors = [
             ".entry-title",
             'article[id^="post-"] h2',
@@ -45,16 +47,39 @@
     if (posts.length === 0)
         return;
 
+    // Keep `posts` in sync when infinite-scroll userscripts (e.g. Pagetual)
+    // append the next page's markup into the DOM. `posts` is mutated in
+    // place (not reassigned) so every closure below that reads posts.at(0),
+    // posts.length, etc. automatically sees the refreshed list — no need to
+    // pass the array around.
+    const refreshPosts = () => {
+        const fresh = findPosts();
+        posts.length = 0;
+        posts.push(...fresh);
+    };
+
+    // Infinite-scroll userscripts like Pagetual fetch the next /page/N/ and
+    // append its markup into the listing container without a real page
+    // navigation, so nothing else here would notice new posts showed up.
+    // Watch that container and re-scan whenever content is added.
+    // Debounced, since these appends are often several DOM mutations in a row.
+    let refreshPostsTimer = null;
+    new MutationObserver(() => {
+        clearTimeout(refreshPostsTimer);
+        refreshPostsTimer = setTimeout(refreshPosts, 200);
+    }).observe(getScope(), { childList: true, subtree: true });
+
     // ── Language detection ───────────────────────────────────────────────────
     // The site's native language is Portuguese; the GTranslate widget lets
-    // visitors translate the page into any language. We only need to decide
-    // two things: which baseline text to render (pt/en), and whether to stop
-    // GTranslate from re-translating that text afterward. We only lock
-    // translation when the visitor has explicitly picked English — GTranslate
-    // re-scanning the DOM on reflow can otherwise bounce our English labels
-    // back out into whatever the page's default is. For any other explicit
-    // selection (including Portuguese), we leave translation enabled so
-    // GTranslate keeps the labels in sync with the rest of the page.
+    // visitors translate the page into any language.
+    // We only need to decide two things: which baseline text to render (pt/en),
+    // and whether to stop GTranslate from re-translating that text afterward.
+    // We only lock translation when the visitor has explicitly picked English —
+    // GTranslate re-scanning the DOM on reflow can otherwise bounce our English
+    // labels back out into whatever the page's default is.
+    // For any other explicit selection (including Portuguese),
+    // we leave translation enabled so GTranslate keeps the labels in sync with
+    // the rest of the page.
     const detectLanguage = () => {
         // 1. Google Translate widget"s currently selected language
         const wrapper = document.querySelector(".gtranslate_wrapper");
@@ -171,7 +196,7 @@
     const EPS = 10;
 
     const offsetTopOf = (el) =>
-        el.getBoundingClientRect().top + window.pageYOffset - HEADER_OFFSET;
+        el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
     
     const scrollToEl = (el) => {
         if (!el)
@@ -184,13 +209,13 @@
         resetConfirms();
     };
 
-    const goTop  = () => scrollToEl(posts[0]);
+    const goTop  = () => scrollToEl(posts.at(0));
 
-    const goLast = () => scrollToEl(posts[posts.length - 1]);
+    const goLast = () => scrollToEl(posts.at(-1));
 
     const goPrev = () => {
-        const currentTop = window.pageYOffset;
-        const firstPostTop = offsetTopOf(posts[0]);
+        const currentTop = window.scrollY;
+        const firstPostTop = offsetTopOf(posts.at(0));
 
         if (currentTop <= firstPostTop + EPS) {
             const currentPage = getPageNumber();
@@ -205,10 +230,10 @@
             return;
         }
 
-        let target = posts[0];
+        let target = posts.at(0);
         for (let i = 0; i < posts.length; i++) {
-            if (offsetTopOf(posts[i]) < currentTop - EPS)
-                target = posts[i];
+            if (offsetTopOf(posts.at(i)) < currentTop - EPS)
+                target = posts.at(i);
             else
                 break;
         }
@@ -216,8 +241,8 @@
     };
 
     const goNext = () => {
-        const currentTop = window.pageYOffset;
-        const lastPostTop = offsetTopOf(posts[posts.length - 1]);
+        const currentTop = window.scrollY;
+        const lastPostTop = offsetTopOf(posts.at(-1));
 
         if (currentTop >= lastPostTop - EPS) {
             if (!nextConfirm) {
@@ -230,10 +255,10 @@
             return;
         }
 
-        let target = posts[posts.length - 1];
+        let target = posts.at(-1);
         for (let i = 0; i < posts.length; i++) {
-            if (offsetTopOf(posts[i]) > currentTop + EPS) {
-                target = posts[i];
+            if (offsetTopOf(posts.at(i)) > currentTop + EPS) {
+                target = posts.at(i);
                 break;
             }
         }
@@ -247,10 +272,9 @@
             return;
         
         sessionStorage.removeItem(SCROLL_STORAGE_KEY);
-        if (target === "first")
-            goTop();
-        if (target === "last")
-            goLast();
+        target === "first"
+            ? goTop()
+            : goLast();
     };
 
     // ── UI & Events ──────────────────────────────────────────────────────────
