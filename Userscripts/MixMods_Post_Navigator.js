@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name                MixMods Post Navigator
-// @name:pt-BR          MixMods - Navegador de Posts
+// @name:pt-BR          MixMods Navegador de Posts
 // @version             1.0.0
 // @author              ChaliceChore
 // @namespace           https://github.com/ChaliceChore/JSScripts/tree/main/Userscripts
 // @description         Floating overlay buttons to jump between posts. Supports double-click pagination with auto-scroll, PT-BR/English labels (translation locked only when GTranslate is explicitly set to English), a collapsed FAB on mobile, long-press tooltips, styling that follows the site's own light/dark toggle, and confirm-state tooltips that stay in the visitor's chosen GTranslate language, and live post-list refresh for infinite-scroll userscripts like Pagetual.
 // @description:en      Floating overlay buttons to jump between posts. Supports double-click pagination with auto-scroll, PT-BR/English labels (translation locked only when GTranslate is explicitly set to English), a collapsed FAB on mobile, long-press tooltips, styling that follows the site's own light/dark toggle, and confirm-state tooltips that stay in the visitor's chosen GTranslate language, and live post-list refresh for infinite-scroll userscripts like Pagetual.
-// @description:pt-BR   Botões flutuantes de sobreposição para navegar entre posts. Oferece suporte a paginação via clique duplo com rolagem automática, rótulos em português (Brasil) e inglês (tradução fixada apenas quando o GTranslate está definido explicitamente para inglês), botão flutuante (FAB) recolhido em dispositivos móveis, dicas de ferramentas (tooltips) exibidas ao manter o botão pressionado, estilo que acompanha a alternância entre modo claro e escuro do próprio site, dicas de ferramentas com estado de confirmação que mantêm o idioma escolhido pelo visitante no GTranslate, e atualização em tempo real da lista de posts para scripts de usuário de rolagem infinita, como o Pagetual.
+// @description:pt-BR   Botões flutuantes para navegar entre posts. Paginação com clique duplo e rolagem automática, rótulos em PT-BR/inglês (tradução travada apenas quando o GTranslate está definido para inglês), FAB recolhido no mobile, tooltips por toque longo, tema claro/escuro conforme o site, e atualização automática da lista de posts para scripts de rolagem infinita como o Pagetual.
 // @license             CC BY-NC-SA 4.0
 // @match               https://www.mixmods.com.br/*
 // @icon                https://www.mixmods.com.br/favicon.ico
